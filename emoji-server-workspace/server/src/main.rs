@@ -17,15 +17,28 @@ fn read_incoming(listener: TcpListener) {
         println!("Connection established");
         let mut buffer = [0; 1400];
         stream.read(&mut buffer).unwrap();
-        convert_buffer(buffer);
-        let sparkle_heart = vec![0xF0, 159, 146, 150];
-        stream.write(&sparkle_heart).unwrap();
+        let incoming = convert_buffer_to_utf8_string(buffer);
+
+        let outgoing = create_reply_string(incoming);
+        stream.write(outgoing.as_bytes()).unwrap();
     }
 }
 
-fn convert_buffer(buffer: [u8; 1400]) {
-    println!(
-        "buffer from incoming stream :{:?}",
-        str::from_utf8(&buffer).unwrap()
-    );
+fn convert_buffer_to_utf8_string(buffer: [u8; 1400]) -> String {
+
+    let raw_bytes = str::from_utf8(&buffer).unwrap();
+    let utf8_chars = raw_bytes.trim_end_matches(char::from(0));
+
+
+    return String::from(utf8_chars);
 }
+
+fn create_reply_string(incoming: String) -> String {
+    let sparkle_heart_emoji_bytes = vec![0xF0, 159, 146, 150];
+    let emoji_str = str::from_utf8(&sparkle_heart_emoji_bytes).unwrap();
+
+    let outgoing = incoming.clone() + emoji_str;
+    return outgoing;
+
+}
+
